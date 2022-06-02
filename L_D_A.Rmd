@@ -1,0 +1,93 @@
+---
+title: "Análisis Discriminante Lineal (LDA)"
+author: "Maisy Samai Vázquez Sánchez"
+date: '2022-05-29'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Análisis Discriminante Lineal
+
+## Introducción
+En el análisis discriminante tiene una función que separa entre varios grupos apriori.La función es una combinación lineal de las variables de identificación,la cual minimiza los errores de clasificación.
+
+1.- Se utilizan los datos de la base Iris
+
+```{r message=FALSE, warning=FALSE}
+library(MASS)
+Z<-as.data.frame(iris)
+head(Z)
+```
+
+2.- Se define la matriz de datos y la variable respuesta con las categorías.
+
+```{r}
+x<-Z[,1:4]
+y<-Z[,5]
+```
+
+3.- Definir como n y p el número de flores y variables
+
+```{r}
+n<-nrow(x)
+p<-ncol(x)
+```
+
+4.- Se aplica el Análisis discriminante lineal **(LDA)** con Cross validation **(cv)**: clasificación optima.
+
+```{r}
+lda.iris<-lda(Z$Species~.,data=Z,CV=TRUE)
+```
+
+5.- **lda.iris$class** contiene las clasificaciones hechas por CV usando LDA.
+
+```{r}
+lda.iris$class
+```
+
+6.- Se crea una tabla de clasificaciones buenas y malas
+
+```{r}
+table.lda<-table(y,lda.iris$class)
+table.lda
+
+```
+
+7.- Proporción de errores
+
+```{r}
+mis.lda<- n-sum(y==lda.iris$class)
+mis.lda/n
+```
+
+8.- scater plot *(Buenas clasificaciones en negro y malas en rojo)*
+
+```{r}
+col.lda.iris<-c("indianred1","black")[1*(y==lda.iris$class)+1]
+pairs(x,main="Buena clasificación (negro), mala clasificación (rojo)",
+      pch=19,col=col.lda.iris)
+```
+En el gráfico se puede observar como hay pocos valores de color rojo que son los que se clasifican mal, sin embargo hay relaciones entre variables que se pueden observar muy bajas e incluso nulas como lo es en el caso de el largo del sepalo con el ancho del mismo, o el acho del sepalo con el largo del pétalo. 
+9.- Probabilidad de pertenencia a uno de los tres grupos
+
+```{r}
+lda.iris$posterior
+```
+
+10.- Gráfico de probabilidades
+
+```{r}
+plot(1:n, lda.iris$posterior[,1],
+     main="Probabilidades a posteriori",
+     pch=20, col="#27408B",
+     xlab="Número de observaciones", ylab="Probabilidades")
+points(1:n,lda.iris$posterior[,2],
+       pch=20, col="#8B4C39")
+points(1:n,lda.iris$posterior[,3],
+       pch=20, col="#2E8B57")
+
+```
+En el gráfico de probabilidades podemos decir que a partir de la observación numero 50 empieza a haber valores que no pertenecen a los conjuntos de pertenencia los cuales son aproximadamente 30 valores. La mayor parte de los valores mal clasificados con *Versicolor* y *Virginica*.
